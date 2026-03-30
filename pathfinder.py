@@ -1,8 +1,16 @@
 import nmap
 import socket
 import json
-import httpx
 from datetime import datetime
+
+# ANSI Color Codes for terminal
+RED = "\033[91m"
+GREEN = "\033[92m"
+YELLOW = "\033[93m"
+BLUE = "\033[94m"
+CYAN = "\033[96m"
+BOLD = "\033[1m"
+RESET = "\033[0m"
 
 class PathFinderPro:
     def __init__(self, target):
@@ -10,45 +18,43 @@ class PathFinderPro:
         self.scanner = nmap.PortScanner()
 
     def fetch_cve_details(self, product, version):
-        """Queries a vulnerability database for known CVEs."""
         if not product or not version:
-            return "No specific version detected for CVE lookup."
-        
-        # Using a public API (like Vulners or NIST - simplified for this demo)
-        search_query = f"{product} {version}"
-        print(f"  [!] Searching vulnerabilities for: {search_query}...")
-        
-        # This is a simulation of an API call to a vulnerability DB
-        # In a production tool, you'd use an API Key for NIST NVD or Vulners
-        return f"Potential exploits found for {product} {version}. Check https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword={product}"
+            return None
+        # Mock logic: if it's a known service, flag it
+        return f"Vulnerability Check: {product} {version} may be exposed to known exploits."
 
     def run_scan(self):
-        print(f"[*] PathFinder: Analyzing {self.target} for attack paths...")
+        print(f"\n{BLUE}{BOLD}[*] PathFinder: Starting Analysis on {self.target}...{RESET}")
+        print(f"{BLUE}-----------------------------------------------------------{RESET}")
         try:
-            # -sV: Service/Version detection
-            # -O: OS detection (requires sudo/root)
-            self.scanner.scan(self.target, '22,80,443,445,3389', '-sV')
+            # Scanning common ports with version detection
+            self.scanner.scan(self.target, '21,22,80,443,445,3389,8080', '-sV')
         except Exception as e:
-            return {"error": str(e)}
+            print(f"{RED}[!] Scan Error: {e}{RESET}")
+            return []
 
         report = []
         for host in self.scanner.all_hosts():
-            host_data = {
-                "ip": host,
-                "status": self.scanner[host].state(),
-                "services": []
-            }
+            print(f"{GREEN}[+] Host Found: {host} ({self.scanner[host].state()}){RESET}")
+            host_data = {"ip": host, "services": []}
             
             for proto in self.scanner[host].all_protocols():
                 for port in self.scanner[host][proto].keys():
                     svc = self.scanner[host][proto][port]
-                    vuln_info = self.fetch_cve_details(svc['product'], svc['version'])
+                    product = svc['product']
+                    version = svc['version']
+                    
+                    print(f"    {CYAN}Port {port}:{RESET} {svc['name']} {YELLOW}({product} {version}){RESET}")
+                    
+                    vuln_info = self.fetch_cve_details(product, version)
+                    if vuln_info:
+                        print(f"    {RED}{BOLD}    [!] ALERT: {vuln_info}{RESET}")
                     
                     host_data["services"].append({
                         "port": port,
                         "service": svc['name'],
-                        "product": svc['product'],
-                        "version": svc['version'],
+                        "product": product,
+                        "version": version,
                         "security_note": vuln_info
                     })
             report.append(host_data)
@@ -59,10 +65,20 @@ class PathFinderPro:
         filename = f"attack_surface_{timestamp}.json"
         with open(filename, 'w') as f:
             json.dump(data, f, indent=4)
-        print(f"\n[+] Professional security report generated: {filename}")
+        print(f"\n{GREEN}{BOLD}[V] Professional JSON report generated: {filename}{RESET}\n")
 
 if __name__ == "__main__":
-    # Get local IP safely
+    # ASCII Art Header
+    print(f"{CYAN}{BOLD}")
+    print("  _____       _   _      ______ _           _Z")
+    print(" |  __ \     | | | |    |  ____(_)         | |")
+    print(" | |__) |__ _| |_| |__  | |__   _ _ __   __| | ___ _ __")
+    print(" |  ___/ _` | __| '_ \ |  __| | | '_ \ / _` |/ _ \ '__|")
+    print(" | |  | (_| | |_| | | || |    | | | | | (_| |  __/ |")
+    print(" |_|   \__,_|\__|_| |_||_|    |_|_| |_|\__,_|\___|_|")
+    print(f"                                       (By Agam){RESET}")
+
+    # Identify target (local IP)
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         s.connect(('8.8.8.8', 80))
