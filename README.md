@@ -1,7 +1,8 @@
 # Pathfinder Scanner 🔍
 
 **Pathfinder Scanner** is a specialized network security tool developed in Python, designed to automate the discovery of services and map them to potential attack vectors. It bridges the gap between raw network scanning and vulnerability intelligence.
-
+## 📊 Network Topology Visualization
+![Network Map](./network_map.png)
 ## 🎯 Project Goals
 The core mission of this project is to simulate the initial phase of **Attack Path Management (APM)**:
 1. **Asset Discovery:** Identifying active nodes in the network.
