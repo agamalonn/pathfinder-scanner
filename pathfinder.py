@@ -1,67 +1,77 @@
 import nmap
-import requests
 import socket
 import json
+import httpx
 from datetime import datetime
 
-class PathFinderScanner:
+class PathFinderPro:
     def __init__(self, target):
         self.target = target
         self.scanner = nmap.PortScanner()
 
-    def scan_network(self):
-        print(f"[*] Starting professional scan on {self.target}...")
-        # Scans for common ports and service versions
-        # Standard ports: 21 (FTP), 22 (SSH), 80 (HTTP), 443 (HTTPS), 445 (SMB), 3389 (RDP)
-        try:
-            self.scanner.scan(self.target, '21,22,80,443,445,3389', '-sV')
-        except Exception as e:
-            return [{"error": str(e)}]
+    def fetch_cve_details(self, product, version):
+        """Queries a vulnerability database for known CVEs."""
+        if not product or not version:
+            return "No specific version detected for CVE lookup."
         
-        results = []
+        # Using a public API (like Vulners or NIST - simplified for this demo)
+        search_query = f"{product} {version}"
+        print(f"  [!] Searching vulnerabilities for: {search_query}...")
+        
+        # This is a simulation of an API call to a vulnerability DB
+        # In a production tool, you'd use an API Key for NIST NVD or Vulners
+        return f"Potential exploits found for {product} {version}. Check https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword={product}"
+
+    def run_scan(self):
+        print(f"[*] PathFinder: Analyzing {self.target} for attack paths...")
+        try:
+            # -sV: Service/Version detection
+            # -O: OS detection (requires sudo/root)
+            self.scanner.scan(self.target, '22,80,443,445,3389', '-sV')
+        except Exception as e:
+            return {"error": str(e)}
+
+        report = []
         for host in self.scanner.all_hosts():
-            host_info = {
-                "host": host,
-                "hostname": self.scanner[host].hostname(),
-                "state": self.scanner[host].state(),
-                "ports": []
+            host_data = {
+                "ip": host,
+                "status": self.scanner[host].state(),
+                "services": []
             }
             
             for proto in self.scanner[host].all_protocols():
-                ports = self.scanner[host][proto].keys()
-                for port in ports:
-                    service = self.scanner[host][proto][port]
-                    port_data = {
+                for port in self.scanner[host][proto].keys():
+                    svc = self.scanner[host][proto][port]
+                    vuln_info = self.fetch_cve_details(svc['product'], svc['version'])
+                    
+                    host_data["services"].append({
                         "port": port,
-                        "name": service['name'],
-                        "product": service['product'],
-                        "version": service['version'],
-                        "cpe": service.get('cpe', 'N/A')
-                    }
-                    # Look for vulnerabilities
-                    port_data["vulnerabilities"] = self.check_cve(service['product'], service['version'])
-                    host_info["ports"].append(port_data)
-            results.append(host_info)
-        return results
+                        "service": svc['name'],
+                        "product": svc['product'],
+                        "version": svc['version'],
+                        "security_note": vuln_info
+                    })
+            report.append(host_data)
+        return report
 
-    def check_cve(self, product, version):
-        if not product or not version:
-            return []
-        # In a real tool for XM Cyber, this would query the NIST NVD API
-        return [f"Potential security risk: {product} {version} may have known exploits."]
-
-    def generate_report(self, data):
-        filename = f"scan_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    def save_report(self, data):
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+        filename = f"attack_surface_{timestamp}.json"
         with open(filename, 'w') as f:
             json.dump(data, f, indent=4)
-        print(f"[+] Scan complete! Security report saved to {filename}")
+        print(f"\n[+] Professional security report generated: {filename}")
 
 if __name__ == "__main__":
+    # Get local IP safely
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
-        # Get local IP for scanning
-        target_ip = socket.gethostbyname(socket.gethostname())
-        scanner = PathFinderScanner(target_ip)
-        scan_results = scanner.scan_network()
-        scanner.generate_report(scan_results)
-    except Exception as e:
-        print(f"Error: {e}")
+        s.connect(('8.8.8.8', 80))
+        local_ip = s.getsockname()[0]
+    except:
+        local_ip = '127.0.0.1'
+    finally:
+        s.close()
+
+    scanner = PathFinderPro(local_ip)
+    results = scanner.run_scan()
+    scanner.save_report(results)
