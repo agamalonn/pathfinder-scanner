@@ -1,35 +1,64 @@
-# Pathfinder Scanner 🔍
+# Pathfinder Scanner
 
-**Pathfinder Scanner** is a specialized network security tool developed in Python, designed to automate the discovery of services and map them to potential attack vectors. It bridges the gap between raw network scanning and vulnerability intelligence.
-## 📊 Network Topology Visualization
+Pathfinder Scanner is a Python-based cybersecurity tool for mapping visible network services and organizing them into an attack-surface report. It was built as a practical exploration of asset discovery, service fingerprinting, and vulnerability-oriented thinking.
+
+The project focuses on the early phase of security assessment: understanding what is exposed before deciding what needs deeper testing or remediation.
+
+## Network Topology Visualization
+
 ![Network Map](./network_map.png)
-## 🎯 Project Goals
-The core mission of this project is to simulate the initial phase of **Attack Path Management (APM)**:
-1. **Asset Discovery:** Identifying active nodes in the network.
-2. **Service Fingerprinting:** Deep analysis of running services and their specific versions.
-3. **Vulnerability Mapping:** Associating identified versions with known security risks (CVEs).
 
-## 🚀 Key Features
-* **Intelligent Enumeration:** Utilizes `nmap` for high-performance port and service discovery.
-* **Version Detection Logic:** Specifically extracts product names and versions to facilitate vulnerability lookups.
-* **Automated Reporting:** Generates a structured `JSON` report (Attack Surface Report) for seamless integration with SOC or SIEM workflows.
-* **Scalable Architecture:** Built with clean, Object-Oriented Python for future extensions.
+## Project Goals
 
-## 🛠️ Technical Stack
-* **Language:** Python 3.11+
-* **Core Libraries:** `python-nmap`, `socket`, `json`, `httpx`
-* **Engine:** Nmap (Network Mapper)
+1. **Asset Discovery** — identify active hosts in a target network.
+2. **Service Fingerprinting** — inspect open ports and detect service/version information.
+3. **Risk Mapping** — connect discovered services to possible security concerns and CVE investigation paths.
+4. **Reporting** — produce structured output that can be reviewed or integrated into a security workflow.
 
-## 📋 How It Works
-The scanner performs a non-intrusive analysis of the target's attack surface:
-1. **Network Sync:** Dynamically identifies the local network context.
-2. **Deep Scan:** Probes critical ports (22, 80, 443, etc.) for service details.
-3. **Security Analysis:** Matches findings against a logic layer that suggests potential CVE paths.
+## Key Features
 
-## 📈 Future Roadmap
-- [ ] **Live NIST NVD API Integration:** Directly fetching CVE descriptions and CVSS scores.
-- [ ] **Visual Attack Graphs:** Generating DOT/Graphviz files to visualize movement between nodes.
-- [ ] **Credential Check:** Implementing basic SSH/Telnet security checks for default credentials.
+- Uses `nmap` for port and service discovery
+- Extracts service names and versions for follow-up research
+- Produces structured JSON-style attack-surface reporting
+- Includes a network visualization artifact
+- Designed with an extensible Python structure for future CVE enrichment
 
----
-*Developed as a demonstration of Cybersecurity Infrastructure and Risk Assessment concepts.*
+## Technical Stack
+
+| Area | Tools |
+| --- | --- |
+| Language | Python 3.11+ |
+| Scanning | Nmap / python-nmap |
+| Data handling | JSON, socket utilities |
+| Future integrations | NIST NVD API / CVE enrichment |
+
+## How It Works
+
+1. Identify the local network context.
+2. Scan selected hosts and ports.
+3. Collect service names, versions, and protocol details.
+4. Normalize findings into a report format.
+5. Use the results to guide manual review and security prioritization.
+
+## Security Skills Demonstrated
+
+- Network reconnaissance fundamentals
+- Service fingerprinting and attack-surface mapping
+- Thinking in terms of security risk and prioritization
+- Python automation for security workflows
+- Structured reporting for technical findings
+
+## Responsible Use Note
+
+This tool is intended for educational use and authorized environments only. Network scanning should only be performed on systems you own, administer, or have explicit permission to assess.
+
+## Roadmap
+
+- Live NIST NVD API integration for CVE descriptions and CVSS scores
+- Visual attack graphs with DOT/Graphviz
+- Safer scan profiles for different environments
+- Exportable HTML or Markdown reports
+
+## Status
+
+Cybersecurity portfolio project demonstrating infrastructure analysis and risk-assessment concepts.
